@@ -81,6 +81,36 @@ class Homematic(SmartPlugin):
         self.hm_id = 'rf'
         if self.get_instance_name() != '':
             self.hm_id += '_' + self.get_instance_name()
+
+        # build dict identifier for the homematicIP ccu of this plugin instance
+        if self.port_hmip != 0:
+            self.hmip_id = 'ip'
+            if self.get_instance_name() != '':
+                self.hmip_id += '_' + self.get_instance_name()
+
+        self.connect()
+
+        self.hm_items = []
+
+        self.init_webinterface(WebInterface)
+
+        return
+
+
+    def run(self):
+        """
+        Run method for the plugin
+        """
+        self.logger.debug("Run method called")
+
+        if not self.connected :
+            self.connect()
+
+        self.alive = True
+        # if you want to create child threads, do not make them daemon = True!
+        # They will not shutdown properly. (It's a python bug)
+
+    def connect(self):
         # create HomeMatic object
         try:
              self.hm = HMConnection(interface_id="myserver", autostart=False,
@@ -95,9 +125,6 @@ class Homematic(SmartPlugin):
 
         # build dict identifier for the homematicIP ccu of this plugin instance
         if self.port_hmip != 0:
-            self.hmip_id = 'ip'
-            if self.get_instance_name() != '':
-                self.hmip_id += '_' + self.get_instance_name()
             # create HomeMaticIP object
             try:
                  self.hmip = HMConnection(interface_id="myserver_ip", autostart=False,
@@ -141,23 +168,6 @@ class Homematic(SmartPlugin):
         #                self.hm.stop()
         #                return
 
-        self.hm_items = []
-
-        self.init_webinterface(WebInterface)
-
-        return
-
-
-    def run(self):
-        """
-        Run method for the plugin
-        """
-        self.logger.debug("Run method called")
-
-        self.alive = True
-        # if you want to create child threads, do not make them daemon = True!
-        # They will not shutdown properly. (It's a python bug)
-
 
     def stop(self):
         """
@@ -168,6 +178,8 @@ class Homematic(SmartPlugin):
 
         self.hm.stop()
         self.hmip.stop()
+
+        self.connected = False
 
 
     def parse_item(self, item):
