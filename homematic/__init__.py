@@ -47,6 +47,7 @@ class Homematic(SmartPlugin):
 #    ALLOW_MULTIINSTANCE = False
 
     connected = False
+    init_connection = False
 
 
     def __init__(self, sh, *args, **kwargs):
@@ -89,6 +90,7 @@ class Homematic(SmartPlugin):
                 self.hmip_id += '_' + self.get_instance_name()
 
         self.connect()
+        self.init_connection = True
 
         self.hm_items = []
 
@@ -103,14 +105,19 @@ class Homematic(SmartPlugin):
         """
         self.logger.debug("Run method called")
 
-        if not self.connected :
-            self.connect()
+        self.connect()
 
         self.alive = True
         # if you want to create child threads, do not make them daemon = True!
         # They will not shutdown properly. (It's a python bug)
 
     def connect(self):
+
+        #bei Plugin-Start bereits ausgeführt
+        if self.init_connection == True :
+            self.init_connection = False
+            return
+
         # create HomeMatic object
         try:
              self.hm = HMConnection(interface_id="myserver", autostart=False,
